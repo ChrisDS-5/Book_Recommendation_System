@@ -5,7 +5,8 @@ from rapidfuzz import process
 import numpy as np
 
 # Load and filter data
-df = pd.read_csv("C://Users/Aditya/Downloads/Book recommendation system/Updated ratings dataset.csv")
+df = pd.read_csv("Updated ratings dataset.csv")
+
 
 # Filter users who rated at least 20 books
 user_counts = df['user_id'].value_counts()
