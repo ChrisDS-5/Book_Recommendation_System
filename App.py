@@ -7,18 +7,20 @@ import numpy as np
 # Load and filter data
 df = pd.read_csv("C://Users/Aditya/Downloads/Book recommendation system/Updated ratings dataset.csv")
 
-# Filter users who rated more than 10 books
-user_counts = df.groupby('user_id')['rating'].count()
-active_users = user_counts[user_counts > 10].index
-df = df[df['user_id'].isin(active_users)]
+# Filter users who rated at least 20 books
+user_counts = df['user_id'].value_counts()
+df = df[df['user_id'].isin(user_counts[user_counts >= 20].index)]
 
-# Filter books with more than 10 ratings
-book_counts = df.groupby('book_id')['rating'].count()
-popular_books = book_counts[book_counts > 10].index
-df = df[df['book_id'].isin(popular_books)]
+# Filter books rated at least 20 times
+book_counts = df['book_id'].value_counts()
+df = df[df['book_id'].isin(book_counts[book_counts >= 20].index)]
 
-# Create user-item matrix
-user_item_matrix = df.pivot_table(index='user_id', columns='book_id', values='rating').fillna(0)
+# Now create the pivot table (safer memory-wise)
+user_item_matrix = df.pivot_table(
+    index='user_id',
+    columns='book_id',
+    values='rating'
+).fillna(0)
 
 # Train KNN model
 model_knn = NearestNeighbors(metric='cosine', algorithm='brute')
@@ -51,7 +53,7 @@ def recommend_books_knn(user_id, user_item_matrix, df, n_neighbors=5, n_recommen
     return recommended_titles
 
 # Streamlit UI
-st.title("📚 Book Recommendation System (KNN Based)")
+st.title("Book Recommendation System")
 st.markdown("Rate at least 5 books to get your personalized recommendations!")
 
 book_titles = df['original_title'].dropna().astype(str).unique().tolist()
@@ -91,6 +93,6 @@ if st.button("Get Recommendations"):
 
         recommendations = recommend_books_knn(new_user_id, user_item_matrix, updated_df)
 
-        st.markdown("### 🎯 Top Book Recommendations for You:")
+        st.markdown("Top Book Recommendations for You:")
         for i, (title, score) in enumerate(recommendations, 1):
             st.write(f"{i}. {title} (Predicted Score: {score})")
